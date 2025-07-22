@@ -1,19 +1,21 @@
 import { useState, useRef } from "react";
-import { Mic, Square, Volume2, Loader2, Download } from "lucide-react";
+import { Mic, Square, Volume2, Loader2, Music2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 
 const Record = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [audioUrl, setAudioUrl] = useState(null);
+  const [resultatMusique, setResultatMusique] = useState(null);
+  const [erreur, setErreur] = useState(null);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const recordTimeoutRef = useRef(null);
 
   const startRecording = async () => {
-    setAudioUrl(null); // Reset audio
+    setResultatMusique(null);
+    setErreur(null);
     setIsRecording(true);
 
     try {
@@ -27,25 +29,43 @@ const Record = () => {
         }
       };
 
-      mediaRecorderRef.current.onstop = () => {
+      mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-        const url = URL.createObjectURL(audioBlob);
-        setAudioUrl(url);
-
         stream.getTracks().forEach((track) => track.stop());
-
         setIsAnalyzing(true);
-        setTimeout(() => {
+
+        try {
+          const formData = new FormData();
+          formData.append("audio", audioBlob, "enregistrement.wav"); // nom du champ = "audio"
+
+          const response = await fetch("http://localhost:5001/recognize", {
+
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) throw new Error("Erreur du serveur");
+
+          const data = await response.json();
+
+          setResultatMusique({
+            titre: data.title,
+            artiste: data.artist,
+          });
+        } catch (err) {
+          setErreur("Erreur lors de l'envoi au serveur.");
+          console.error(err);
+        } finally {
           setIsAnalyzing(false);
-        }, 3000);
+        }
       };
 
       mediaRecorderRef.current.start();
 
-      // Stop automatically after 10 seconds
+      // ⏱️ Arrêt automatique après 15 secondes
       recordTimeoutRef.current = setTimeout(() => {
         stopRecording();
-      }, 10000);
+      }, 15000);
     } catch (err) {
       console.error("Erreur d'accès au micro:", err);
       setIsRecording(false);
@@ -99,7 +119,7 @@ const Record = () => {
           </div>
         </div>
 
-        {/* Recording Status */}
+        {/* Status */}
         <div className="text-center mb-8">
           {isAnalyzing ? (
             <div className="space-y-4">
@@ -164,30 +184,31 @@ const Record = () => {
           )}
         </Button>
 
-        {/* Audio Playback & Download */}
-        {audioUrl && !isRecording && !isAnalyzing && (
-          <div className="mt-8 text-center space-y-4">
-            <audio controls src={audioUrl} className="w-full max-w-md rounded" />
-            <div>
-              <a
-                href={audioUrl}
-                download="enregistrement.wav"
-                className="inline-flex items-center px-6 py-3 text-white bg-green-600 hover:bg-green-700 rounded-full font-medium shadow-lg transition-all"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Télécharger l'enregistrement
-              </a>
+        {/* Résultat musique */}
+        {resultatMusique && !isAnalyzing && (
+          <div className="mt-10 p-6 bg-white/10 rounded-xl shadow-lg text-center text-white border border-white/20">
+            <div className="flex flex-col items-center space-y-2">
+              <Music2 className="w-8 h-8 text-pink-400" />
+              <h2 className="text-xl font-bold">{resultatMusique.titre}</h2>
+              <p className="text-sm text-gray-300">par {resultatMusique.artiste}</p>
             </div>
           </div>
         )}
 
-        {/* Tips */}
+        {/* Erreur */}
+        {erreur && (
+          <div className="mt-6 text-red-400 font-semibold text-center">
+            {erreur}
+          </div>
+        )}
+
+        {/* Conseils */}
         <div className="mt-12 max-w-md text-center">
           <h3 className="text-lg font-semibold text-white mb-4">Conseils</h3>
           <div className="space-y-2 text-sm text-gray-400">
             <p>• Assurez-vous d'être dans un environnement relativement calme</p>
             <p>• La musique doit être audible et claire</p>
-            <p>• L'écoute dure environ 10-15 secondes</p>
+            <p>• L'écoute dure environ 15 secondes</p>
             <p>• Évitez les bruits de fond trop forts</p>
           </div>
         </div>

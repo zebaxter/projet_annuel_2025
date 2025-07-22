@@ -41,7 +41,7 @@ const Auth = () => {
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-white">
-              Connexion à MusicFinder
+              Connexion à Soundify
             </CardTitle>
             <CardDescription className="text-gray-400">
               Connectez-vous pour sauvegarder vos découvertes musicales

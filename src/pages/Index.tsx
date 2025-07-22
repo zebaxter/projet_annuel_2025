@@ -22,7 +22,7 @@ const Index = () => {
             </div>
             
             <h1 className="text-5xl font-bold text-white mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              MusicFinder
+              Soundify
             </h1>
             
             <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
@@ -59,7 +59,7 @@ const Index = () => {
       <div className="py-20 px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Pourquoi choisir MusicFinder ?
+            Pourquoi choisir Soundify ?
           </h2>
           <p className="text-gray-400 text-lg">
             Une reconnaissance musicale rapide et précise
