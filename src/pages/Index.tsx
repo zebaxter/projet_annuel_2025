@@ -62,7 +62,7 @@ const Index = () => {
             Pourquoi choisir MusicFinder ?
           </h2>
           <p className="text-gray-400 text-lg">
-            La reconnaissance musicale la plus rapide et précise
+            Une reconnaissance musicale rapide et précise
           </p>
         </div>
         

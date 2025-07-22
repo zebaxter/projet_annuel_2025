@@ -1,43 +1,74 @@
-
-import { useState } from "react";
-import { Mic, Square, Volume2, Loader2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { Mic, Square, Volume2, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 
 const Record = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(null);
 
-  const startRecording = () => {
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordTimeoutRef = useRef(null);
+
+  const startRecording = async () => {
+    setAudioUrl(null); // Reset audio
     setIsRecording(true);
-    // Simulation de l'enregistrement
-    setTimeout(() => {
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+
+        stream.getTracks().forEach((track) => track.stop());
+
+        setIsAnalyzing(true);
+        setTimeout(() => {
+          setIsAnalyzing(false);
+        }, 3000);
+      };
+
+      mediaRecorderRef.current.start();
+
+      // Stop automatically after 10 seconds
+      recordTimeoutRef.current = setTimeout(() => {
+        stopRecording();
+      }, 10000);
+    } catch (err) {
+      console.error("Erreur d'accès au micro:", err);
       setIsRecording(false);
-      setIsAnalyzing(true);
-      // Simulation de l'analyse
-      setTimeout(() => {
-        setIsAnalyzing(false);
-      }, 3000);
-    }, 5000);
+    }
   };
 
   const stopRecording = () => {
     setIsRecording(false);
-    setIsAnalyzing(true);
-    setTimeout(() => {
-      setIsAnalyzing(false);
-    }, 3000);
+    if (recordTimeoutRef.current) {
+      clearTimeout(recordTimeoutRef.current);
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <Navigation />
-      
+
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Reconnaissance Musicale
-          </h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Reconnaissance Musicale</h1>
           <p className="text-gray-300 text-lg">
             Appuyez sur le bouton et laissez la musique jouer
           </p>
@@ -45,19 +76,14 @@ const Record = () => {
 
         {/* Recording Visualization */}
         <div className="relative mb-12">
-          {/* Outer rings for recording effect */}
           {isRecording && (
             <>
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 opacity-20 animate-ping" 
-                   style={{ animationDuration: '2s' }} />
-              <div className="absolute inset-4 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 opacity-30 animate-ping" 
-                   style={{ animationDuration: '1.5s' }} />
-              <div className="absolute inset-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 opacity-40 animate-ping" 
-                   style={{ animationDuration: '1s' }} />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 opacity-20 animate-ping" style={{ animationDuration: '2s' }} />
+              <div className="absolute inset-4 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 opacity-30 animate-ping" style={{ animationDuration: '1.5s' }} />
+              <div className="absolute inset-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 opacity-40 animate-ping" style={{ animationDuration: '1s' }} />
             </>
           )}
-          
-          {/* Main recording button */}
+
           <div className={`w-48 h-48 rounded-full flex items-center justify-center transition-all duration-300 ${
             isRecording 
               ? 'bg-gradient-to-r from-red-500 to-pink-500 shadow-lg shadow-red-500/50' 
@@ -77,21 +103,13 @@ const Record = () => {
         <div className="text-center mb-8">
           {isAnalyzing ? (
             <div className="space-y-4">
-              <p className="text-2xl font-semibold text-white">
-                Analyse en cours...
-              </p>
-              <p className="text-gray-400">
-                Identification de la musique
-              </p>
+              <p className="text-2xl font-semibold text-white">Analyse en cours...</p>
+              <p className="text-gray-400">Identification de la musique</p>
             </div>
           ) : isRecording ? (
             <div className="space-y-4">
-              <p className="text-2xl font-semibold text-white animate-pulse">
-                Écoute en cours...
-              </p>
-              <p className="text-gray-400">
-                Assurez-vous que la musique soit audible
-              </p>
+              <p className="text-2xl font-semibold text-white animate-pulse">Écoute en cours...</p>
+              <p className="text-gray-400">Assurez-vous que la musique soit audible</p>
               <div className="flex items-center justify-center space-x-2">
                 <Volume2 className="w-5 h-5 text-purple-400" />
                 <div className="flex space-x-1">
@@ -111,12 +129,8 @@ const Record = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-2xl font-semibold text-white">
-                Prêt à écouter
-              </p>
-              <p className="text-gray-400">
-                Lancez une chanson et appuyez sur le bouton
-              </p>
+              <p className="text-2xl font-semibold text-white">Prêt à écouter</p>
+              <p className="text-gray-400">Lancez une chanson et appuyez sur le bouton</p>
             </div>
           )}
         </div>
@@ -149,6 +163,23 @@ const Record = () => {
             </>
           )}
         </Button>
+
+        {/* Audio Playback & Download */}
+        {audioUrl && !isRecording && !isAnalyzing && (
+          <div className="mt-8 text-center space-y-4">
+            <audio controls src={audioUrl} className="w-full max-w-md rounded" />
+            <div>
+              <a
+                href={audioUrl}
+                download="enregistrement.wav"
+                className="inline-flex items-center px-6 py-3 text-white bg-green-600 hover:bg-green-700 rounded-full font-medium shadow-lg transition-all"
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Télécharger l'enregistrement
+              </a>
+            </div>
+          </div>
+        )}
 
         {/* Tips */}
         <div className="mt-12 max-w-md text-center">
