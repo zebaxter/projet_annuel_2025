@@ -2,50 +2,77 @@ import { useState, useRef } from "react";
 import { Mic, Square, Volume2, Loader2, Music2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
+import RecordRTC from "recordrtc";
 
 const Record = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [resultatMusique, setResultatMusique] = useState(null);
   const [erreur, setErreur] = useState(null);
+  const [audioURL, setAudioURL] = useState(null);
 
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
+  const recorderRef = useRef(null);
+  const streamRef = useRef(null);
   const recordTimeoutRef = useRef(null);
 
   const startRecording = async () => {
     setResultatMusique(null);
     setErreur(null);
+    setAudioURL(null);
     setIsRecording(true);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
+      streamRef.current = stream;
 
-      mediaRecorderRef.current.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          audioChunksRef.current.push(e.data);
+      const recorder = new RecordRTC(stream, {
+        type: "audio",
+        mimeType: "audio/wav",
+        recorderType: RecordRTC.StereoAudioRecorder,
+        desiredSampRate: 44100,
+        numberOfAudioChannels: 1,
+        disableLogs: true,
+      });
+
+      recorderRef.current = recorder;
+      recorder.startRecording();
+
+      recordTimeoutRef.current = setTimeout(() => {
+        stopRecording();
+      }, 15000);
+    } catch (err) {
+      console.error("Erreur d'accès au micro:", err);
+      setErreur("Impossible d'accéder au microphone.");
+      setIsRecording(false);
+    }
+  };
+
+  const stopRecording = () => {
+    setIsRecording(false);
+    if (recordTimeoutRef.current) {
+      clearTimeout(recordTimeoutRef.current);
+    }
+
+    if (recorderRef.current) {
+      recorderRef.current.stopRecording(async () => {
+        const blob = recorderRef.current.getBlob();
+        setAudioURL(URL.createObjectURL(blob));
+
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
         }
-      };
 
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-        stream.getTracks().forEach((track) => track.stop());
         setIsAnalyzing(true);
-
         try {
           const formData = new FormData();
-          formData.append("audio", audioBlob, "enregistrement.wav"); // nom du champ = "audio"
+          formData.append("audio", blob, "enregistrement.wav");
 
-          const response = await fetch("http://localhost:5001/recognize", {
-
+          const response = await fetch("http://localhost:5050/recognize", {
             method: "POST",
             body: formData,
           });
 
           if (!response.ok) throw new Error("Erreur du serveur");
-
           const data = await response.json();
 
           setResultatMusique({
@@ -58,34 +85,13 @@ const Record = () => {
         } finally {
           setIsAnalyzing(false);
         }
-      };
-
-      mediaRecorderRef.current.start();
-
-      // ⏱️ Arrêt automatique après 15 secondes
-      recordTimeoutRef.current = setTimeout(() => {
-        stopRecording();
-      }, 15000);
-    } catch (err) {
-      console.error("Erreur d'accès au micro:", err);
-      setIsRecording(false);
-    }
-  };
-
-  const stopRecording = () => {
-    setIsRecording(false);
-    if (recordTimeoutRef.current) {
-      clearTimeout(recordTimeoutRef.current);
-    }
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      mediaRecorderRef.current.stop();
+      });
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <Navigation />
-
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">Reconnaissance Musicale</h1>
@@ -94,7 +100,6 @@ const Record = () => {
           </p>
         </div>
 
-        {/* Recording Visualization */}
         <div className="relative mb-12">
           {isRecording && (
             <>
@@ -103,10 +108,9 @@ const Record = () => {
               <div className="absolute inset-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 opacity-40 animate-ping" style={{ animationDuration: '1s' }} />
             </>
           )}
-
           <div className={`w-48 h-48 rounded-full flex items-center justify-center transition-all duration-300 ${
-            isRecording 
-              ? 'bg-gradient-to-r from-red-500 to-pink-500 shadow-lg shadow-red-500/50' 
+            isRecording
+              ? 'bg-gradient-to-r from-red-500 to-pink-500 shadow-lg shadow-red-500/50'
               : 'bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70 hover:scale-105'
           }`}>
             {isAnalyzing ? (
@@ -119,7 +123,6 @@ const Record = () => {
           </div>
         </div>
 
-        {/* Status */}
         <div className="text-center mb-8">
           {isAnalyzing ? (
             <div className="space-y-4">
@@ -155,7 +158,6 @@ const Record = () => {
           )}
         </div>
 
-        {/* Control Button */}
         <Button
           size="lg"
           onClick={isRecording ? stopRecording : startRecording}
@@ -184,7 +186,12 @@ const Record = () => {
           )}
         </Button>
 
-        {/* Résultat musique */}
+        {audioURL && !isRecording && !isAnalyzing && (
+          <div className="mt-6">
+            <audio controls src={audioURL} className="w-full max-w-md" />
+          </div>
+        )}
+
         {resultatMusique && !isAnalyzing && (
           <div className="mt-10 p-6 bg-white/10 rounded-xl shadow-lg text-center text-white border border-white/20">
             <div className="flex flex-col items-center space-y-2">
@@ -195,14 +202,12 @@ const Record = () => {
           </div>
         )}
 
-        {/* Erreur */}
         {erreur && (
           <div className="mt-6 text-red-400 font-semibold text-center">
             {erreur}
           </div>
         )}
 
-        {/* Conseils */}
         <div className="mt-12 max-w-md text-center">
           <h3 className="text-lg font-semibold text-white mb-4">Conseils</h3>
           <div className="space-y-2 text-sm text-gray-400">
