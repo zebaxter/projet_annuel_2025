@@ -1,4 +1,4 @@
-# 🎵 Sound Recognition Web App (inspired by Shazam)
+# 🎵 Web application de reconnaussance de musique (inspired by Shazam)
 
 ## 📌 Description
 Ce projet est un **projet annuel réalisé en deuxième année d’études supérieures**.  
