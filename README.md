@@ -1,20 +1,22 @@
 # 🎵 Sound Recognition Web App (inspired by Shazam)
 
 ## 📌 Description
-Ce projet est un **projet annuel réalisé sur deux années d’études supérieures**, dont l’objectif était de concevoir un **site web inspiré du fonctionnement de Shazam** :  
-enregistrer une musique via le microphone, **reconnaître le morceau**, puis identifier **l’artiste** et **le genre musical**.
+Ce projet est un **projet annuel réalisé en deuxième année d’études supérieures**.  
+L’idée du projet **n’était pas imposée** : elle a été **entièrement imaginée et proposée par notre groupe**.
 
-Le projet couvre à la fois le **front-end** et le **back-end**, avec une approche complète allant de la capture audio jusqu’à l’analyse et la comparaison des données sonores.
+L’objectif était de concevoir un **site web inspiré du fonctionnement de Shazam**, permettant d’enregistrer une musique via le microphone, de **reconnaître le morceau**, d’identifier **l’artiste** et, à terme, **le genre musical**.
+
+Le projet couvre l’ensemble de la chaîne : **front-end, back-end, traitement audio et intelligence artificielle**.
 
 ---
 
 ## 🎯 Objectifs du projet
 - Concevoir une **application web complète** (front + back)
-- Comprendre les principes de la **reconnaissance audio**
-- Mettre en place une **base de données de fingerprints musicaux**
-- Manipuler des fichiers audio (WAV)
-- Découvrir les bases de l’**intelligence artificielle appliquée à la musique**
-- Travailler en **équipe sur un projet long**
+- Mettre en œuvre un système de **reconnaissance audio**
+- Créer et exploiter une **base de données de fingerprints musicaux**
+- Manipuler et analyser des **fichiers audio (WAV)**
+- Découvrir les bases de l’**IA appliquée à la musique**
+- Travailler en **équipe sur un projet annuel**
 
 ---
 
@@ -22,8 +24,8 @@ Le projet couvre à la fois le **front-end** et le **back-end**, avec une approc
 Le front-end est développé en **React** et propose plusieurs pages :
 
 - 🎙️ **Page de reconnaissance**
-  - Lancement de l’enregistrement audio via le micro
-  - Envoi du fichier audio au back-end
+  - Enregistrement audio via le microphone
+  - Envoi du fichier WAV au back-end pour analyse
 
 - 🕒 **Page d’historique**
   - Prévue pour afficher les musiques reconnues  
@@ -36,23 +38,23 @@ Le front-end est développé en **React** et propose plusieurs pages :
 ---
 
 ## ⚙️ Back-end
-Le back-end gère toute la partie traitement audio et reconnaissance :
+Le back-end gère toute la partie **traitement et reconnaissance audio** :
 
-- Réception d’un **fichier WAV** envoyé par le front
+- Réception d’un **fichier WAV** envoyé par le front-end
 - Découpage de l’enregistrement en **fingerprints audio**
 - Comparaison avec une **base de données créée par nos soins**
-  - Environ **30 musiques enregistrées**
+  - Environ **30 musiques**
   - Chaque musique est stockée sous forme de fingerprints
-- Retour du **nom du morceau** et de **l’artiste** lorsque la correspondance est trouvée
+- Retour du **nom du morceau** et de **l’artiste** lorsqu’une correspondance est trouvée
 
 ---
 
 ## 🤖 Reconnaissance du genre musical (IA)
-Une partie du projet concerne la **reconnaissance du genre musical** :
+Le projet intègre une partie **intelligence artificielle** dédiée à la reconnaissance du genre musical :
 
-- Utilisation d’une **intelligence artificielle développée partiellement par l’équipe**
-- Le modèle n’est **pas totalement finalisé**
-- Cette fonctionnalité est considérée comme une **évolution future**
+- Modèle **partiellement développé par l’équipe**
+- Fonctionnalité **non finalisée**
+- Considérée comme une **évolution future du projet**
 
 ---
 
@@ -64,27 +66,27 @@ Une partie du projet concerne la **reconnaissance du genre musical** :
 
 ### Back-end
 - Python
-- Traitement audio (fingerprints)
-- Base de données de signatures musicales
+- Traitement audio et fingerprints
+- Base de données musicale
 
 ### Autres
 - Enregistrement audio via microphone
-- Échanges front/back via fichiers WAV
+- Communication front/back par fichiers WAV
 
 ---
 
 ## 📚 Contexte du projet
-- 📅 Projet annuel sur **2 années d’études supérieures**
+- 📅 Projet annuel de **deuxième année d’études supérieures**
 - 👥 Projet de groupe (**3 personnes**)
+- 💡 Idée entièrement **proposée par le groupe**
 - 🏫 Réalisé dans un cadre académique
 
-Ce projet a permis de consolider des compétences en **développement web**, **traitement du signal**, **architecture client/serveur** et **travail en équipe**.
+Ce projet a été **évalué à 19 / 20**, soulignant la qualité technique, la pertinence de l’idée et l’investissement du groupe.
 
 ---
 
-## 🔒 Accès au code
-Le code source complet n’est pas public.  
-👉 **Disponible sur demande** (recruteur, cadre pédagogique, ou intérêt technique).
+## 📂 Accès au code
+Le code source est **disponible dans ce dépôt**.
 
 ---
 
@@ -99,4 +101,4 @@ Le code source complet n’est pas public.
 
 ## 👤 Auteurs
 Projet réalisé en **groupe de 3**  
-Projet annuel – études supérieures  
+Projet annuel – deuxième année d’études supérieures  
